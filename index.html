@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrowGPT</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e1e;
+      color: #f1f1f1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #2a7a3b;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    #chat-container {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .message {
+      max-width: 80%;
+      padding: 0.75rem;
+      border-radius: 10px;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .user {
+      align-self: flex-end;
+      background: #3c3c3c;
+      flex-direction: row-reverse;
+    }
+    .bot {
+      align-self: flex-start;
+      background: #2c2c2c;
+      border: 1px solid #555;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+    }
+    .user .avatar {
+      background-image: url('https://cdn-icons-png.flaticon.com/512/1144/1144760.png');
+    }
+    .bot .avatar {
+      background-image: url('https://cdn-icons-png.flaticon.com/512/4712/4712109.png');
+    }
+    #input-form {
+      display: flex;
+      border-top: 1px solid #333;
+      background: #1e1e1e;
+    }
+    #user-input {
+      flex: 1;
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      outline: none;
+      background: #2b2b2b;
+      color: #f1f1f1;
+    }
+    button {
+      padding: 1rem;
+      border: none;
+      background: #2a7a3b;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      header { font-size: 1.2rem; }
+      .message { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>GrowGPT 🌱</header>
+  <div id="chat-container"></div>
+  <form id="input-form">
+    <input id="user-input" placeholder="Ask me anything..." autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const API_KEY = 'YOUR_OPENAI_API_KEY'; // 🔐 Replace with your new key
+
+    const chatContainer = document.getElementById('chat-container');
+    const form = document.getElementById('input-form');
+    const input = document.getElementById('user-input');
+
+    function addMessage(text, className) {
+      const msg = document.createElement('div');
+      msg.className = `message ${className}`;
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      msg.appendChild(avatar);
+      const content = document.createElement('div');
+      content.textContent = text;
+      msg.appendChild(content);
+      chatContainer.appendChild(msg);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function getBotResponse(prompt) {
+      addMessage(prompt, 'user');
+      input.value = '';
+      try {
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+        addMessage(reply, 'bot');
+      } catch (err) {
+        addMessage('Error talking to GrowGPT. Check your API key.', 'bot');
+      }
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (text) getBotResponse(text);
+    });
+  </script>
+</body>
+</html>
